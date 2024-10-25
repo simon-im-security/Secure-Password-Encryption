@@ -1,73 +1,70 @@
-# Secure Password Management with GPG
+  Secure Secret Encryption
 
-This project demonstrates how to securely manage sensitive information, such as passwords or API keys, using GPG encryption in a Linux environment. This approach helps ensure that critical credentials are never exposed in plaintext, enhancing security and reducing the risk of compromise.
+Secure Secret Encryption
+========================
 
-## Overview
+Description
+-----------
 
-The script provided here guides you through:
+This script encrypts secrets using GPG and stores them in a secure directory (`/root/secure`). Each secret has a unique passphrase for encryption. You can add multiple secrets and monitor access using `auditd`.
 
-- Encrypting a password or API key with GPG.
-- Storing the encrypted password in a secure directory.
-- Decryption on-demand for use in other scripts.
+Usage Guide
+-----------
 
-## How It Works
+### Prerequisites
 
-The script follows these steps:
+*   Run the script as `root` or with `sudo` privileges.
+*   Install GPG if it's not already installed.
+*   Use tools like `auditd` to monitor access to sensitive files.
 
-1. Check if `gpg` is installed. If not, the script will prompt the user to install it before proceeding.
-2. Create a secure folder (e.g., `/root/secure`) with restricted permissions to store the encrypted file.
-3. Encrypt the password using GPG and store the encrypted file in the secure folder.
-4. Provide an easy way to decrypt and use the password on-demand in your scripts.
+### Script Overview
 
-## Setup Instructions
+*   **Title:** Secure Secret Encryption Script
+*   **Author:** Simon .I
+*   **Version:** 2024.10.25
 
-To use the script, follow these steps:
+The script encrypts multiple secrets with GPG, stores them securely, and provides guidance for monitoring access.
 
-1. Edit the variables `PASSWORD` and `PASSPHRASE` in the script to set your password and encryption passphrase.
-2. Run the script to generate an encrypted file that securely stores your password.
-3. In your other scripts, use the provided command to decrypt and use the password whenever required:
+### Features
 
-   ```bash
-   PASSWORD=$(gpg --quiet --batch --yes --passphrase "$PASSPHRASE" --decrypt /root/secure/password.gpg)
-   ```
+*   Encrypt secrets using GPG with AES256.
+*   Store encrypted files in `/root/secure` with restricted access.
+*   Easily add more secrets as needed.
+*   Monitor file access using `auditd`.
 
-## Auditing (Optional and Recommended)
+### Instructions
 
-To enhance security, it is recommended to audit access to the encrypted file. This can help you detect any unauthorised attempts to access sensitive credentials.
+1.  **Define Secrets:** Edit the `SECRET1`, `PASSPHRASE1`, etc., to specify your secrets and passphrases.
+2.  **Run the Script:** Run the script with root privileges to create the secure folder and encrypt the secrets.
+3.  **Add Monitoring:** Use `auditd` to track access to encrypted files.
 
-### Step-by-Step Auditing Setup
+### Sample Usage
 
-1. Add an audit rule to monitor read access to the encrypted file:
+    # Encrypting the first secret
+    SECRET1="my_secret_value"
+    PASSPHRASE1="my_passphrase"
+    
+    # Run the script
+    sudo ./encrypt_secret.sh
+        
 
-   ```bash
-   sudo auditctl -w /root/secure/password.gpg -p r -k api_key_monitor
-   ```
+### Monitoring Access Using auditd
 
-2. To review audit logs, use:
+Use `auditd` to monitor access:
 
-   ```bash
-   sudo ausearch -k api_key_monitor
-   ```
+    # Monitor read attempts
+    sudo auditctl -w /root/secure/secret_1.gpg -p r -k secret1_access
+        
 
-3. To clean up the logs and extract relevant information, run:
+View access logs:
 
-   ```bash
-   sudo ausearch -k api_key_monitor | awk '/time->/ {if (data != "") {print ts, data}; ts=$3" "$4" "$5" "$6" "$7; data=""} \
-   /uid=|auid=/ {for(i=1;i<=NF;i++) if($i ~ /^(uid|auid)=/ && data !~ $i) data=data" "$i} \
-   END {if (data != "") print ts, data}' | sort | uniq
-   ```
+    # View logs for secret_1.gpg
+    sudo ausearch -k secret1_access
+        
 
-By monitoring access to the encrypted file, you can gain insight into when and by whom the file is accessed, helping to detect any unauthorised attempts.
+### Decrypting Secrets
 
-## Benefits of This Approach
+To decrypt a secret:
 
-Using GPG to manage sensitive information provides several key benefits:
-
-- **Enhanced Security**: Passwords are stored in an encrypted format, reducing the risk of exposure.
-- **On-Demand Decryption**: The password is decrypted only when needed, preventing it from being stored in plaintext on disk.
-- **Access Control**: By restricting permissions to the encrypted file and its containing folder, only authorised users (typically root) can access the data.
-- **Auditing**: Optional auditing allows for proactive monitoring of access attempts, improving the overall security posture.
-
-## Conclusion
-
-This project offers a practical example of how to securely manage sensitive information in a Linux environment using GPG. By encrypting passwords and storing them securely, you minimise the risk of credential exposure. Adding auditing helps you monitor and react to any unauthorised access attempts, making this approach robust for sensitive use cases.
+    # Decrypting a secret
+    SECRET1=$(gpg --quiet --batch --yes --passphrase "$PASSPHRASE1" --decrypt /root/secure/secret_1.gpg)
