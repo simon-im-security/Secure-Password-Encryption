@@ -1,5 +1,3 @@
-  Secure Secret Encryption
-
 Secure Secret Encryption
 ========================
 
